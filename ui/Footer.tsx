@@ -1,6 +1,6 @@
 function Footer() {
   return (
-    <div className="min-w-full h-[200px] absolute bottom-0 bg-pink-950">
+    <div className="min-w-full h-[200px] absolute mt-[100%] bg-gray-800">
       footer
     </div>
   );
