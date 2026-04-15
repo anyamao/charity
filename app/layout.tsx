@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthInitializer } from "@/ui/AuthInitializer";
+
 import "./globals.css";
 // ✅ Only import Header/Footer if you actually use them globally
 // import Header from "@/ui/Header";
@@ -35,7 +37,7 @@ export default function RootLayout({
       <body className="min-h-[1100px] bg-gray-100 w-full font-sans">
         {/* ✅ Render Header/Footer here ONLY if they should appear on EVERY page */}
         {/* <Header /> */}
-
+        <AuthInitializer />
         {children}
 
         {/* <Footer /> */}

@@ -1,4 +1,5 @@
 "use client";
+import { authApi, setAuthToken } from "@/lib/api"; // Add this import
 
 import Image from "next/image";
 import Link from "next/link";
@@ -21,7 +22,6 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -34,41 +34,28 @@ export default function SignInPage() {
     }
 
     try {
-      const supabase = createClient();
-
-      // ✅ Correct destructuring for Supabase v2+
-      const { data, error: authError } = await supabase.auth.signUp({
+      // ✅ Call FastAPI backend instead of Supabase
+      const userData = await authApi.signup({
         email,
         password,
-      });
-
-      if (authError) throw authError;
-      if (!data.user) throw new Error("Не удалось создать пользователя");
-
-      // ✅ Use data.user instead of authData.user
-      const { error: profileError } = await supabase.from("users").insert({
-        id: data.user.id,
-        email,
         name,
         lastname,
         city,
         date_of_birth: dateOfBirth,
         contact_type: contactType,
         contact_value: contactValue,
-        created_at: new Date().toISOString(),
       });
 
-      if (profileError) {
-        // Optional: Clean up auth user if profile insert fails
-        await supabase.auth.admin.deleteUser(data.user.id);
-        throw profileError;
-      }
+      // Auto-login after signup
+      const tokenData = await authApi.login(email, password);
+      setAuthToken(tokenData.access_token);
 
       alert("Аккаунт успешно создан!");
       router.push("/");
       router.refresh();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Signup error:", err);
+      setError(err.message || "Ошибка при регистрации");
     } finally {
       setLoading(false);
     }

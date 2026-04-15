@@ -37,7 +37,7 @@ export default function SignInPage() {
 
   return (
     // ✅ Root: min-h-screen instead of h-full
-    <div className="w-full min-h-[1300px] bg-red-900 flex  justify-center flex-row">
+    <div className="w-full min-h-[1300px] flex  justify-center flex-row">
       {/* Left panel: min-h-screen + overflow-y-auto */}
       <div className="bg-white z-10 flex-1 min-h-[1300px] pt-[10px] px-[10px] max-w-[900px] overflow-y-auto">
         <div className="flex items-center">
