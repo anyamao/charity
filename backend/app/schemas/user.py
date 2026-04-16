@@ -6,7 +6,7 @@ import re
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=6, max_length=72)
     name: str
     lastname: str
     city: str
@@ -19,6 +19,8 @@ class UserCreate(BaseModel):
     def password_strength(cls, v: str) -> str:
         if len(v) < 6:
             raise ValueError("Пароль должен содержать минимум 6 символов")
+        if len(v) > 72:
+            raise ValueError("Пароль слишком длинный (максимум 72 символа)")
         return v
 
     @field_validator("contact_value")

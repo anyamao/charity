@@ -1,11 +1,10 @@
 "use client";
-import { authApi, setAuthToken } from "@/lib/api"; // Add this import
 
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { authApi, setAuthToken } from "@/lib/api"; // Add this import
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -22,6 +21,7 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -53,13 +53,13 @@ export default function SignInPage() {
       alert("Аккаунт успешно создан!");
       router.push("/");
       router.refresh();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Signup error:", err);
-      setError(err.message || "Ошибка при регистрации");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     // ✅ Root: min-h-screen instead of h-full
     <div className="w-full min-h-[1300px] bg-red-900 flex  justify-center flex-row">

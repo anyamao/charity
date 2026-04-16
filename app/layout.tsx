@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AuthInitializer } from "@/ui/AuthInitializer";
 
 import "./globals.css";
 // ✅ Only import Header/Footer if you actually use them globally
@@ -34,10 +33,9 @@ export default function RootLayout({
       suppressHydrationWarning // ✅ Prevents hydration warnings from browser extensions
     >
       {/* ✅ Use min-h-screen, remove centering — let child pages control their own layout */}
-      <body className="min-h-[1100px] bg-gray-100 w-full font-sans">
+      <body className="min-h-[1100px] bg-gray-100 w-full flex flex-col items-center font-sans">
         {/* ✅ Render Header/Footer here ONLY if they should appear on EVERY page */}
         {/* <Header /> */}
-        <AuthInitializer />
         {children}
 
         {/* <Footer /> */}

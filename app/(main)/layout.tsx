@@ -25,13 +25,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="bg-gray-100 relative w-full h-full min-h-[1100px] flex flex-col flex-1">
-      <Header />
-      <main className="flex-1 h-full min-h-[1100px] w-full">
-        {" "}
-        <MainMenu />
+    <div className=" relative w-full h-full min-h-[1100px] max-w-[1100px] flex flex-col items-center p-[10px] flex-1">
+      <Header></Header>
+      <main className="flex-1 h-full min-h-[1100px] mt-[100px] pb-[250px]  w-full">
         {children}
       </main>
+      <img
+        src="/background.jpg"
+        className="fixed top-0 left-0 w-full object-cover  h-full -z-30"
+      />
       <Footer />
     </div>
   );
