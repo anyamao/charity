@@ -1,4 +1,25 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+
+
+
+
+
+
+
+
+const getApiUrl = () => {
+  // Если код выполняется на сервере (в контейнере)
+  if (typeof window === 'undefined') {
+    // Внутри Docker используем имя сервиса
+    return process.env.API_INTERNAL_URL || 'http://backend:8000';
+  }
+  // Если в браузере — используем публичный IP
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+};
+
+
+
+const API_URL =   getApiUrl();
 
 // Types
 export interface SignupData {

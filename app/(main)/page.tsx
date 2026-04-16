@@ -122,8 +122,7 @@ export default async function HomePage() {
                       {article.reading_time}
                     </span>
                     <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                      {formatDate(article.created_at)}
-                    </span>
+                                        </span>
                   </div>
                   <h2 className="text-xl font-bold mb-[10px] mx-[10px] text-gray-900 mt-3 group-hover:text-pink-900 transition-colors">
                     {article.title}

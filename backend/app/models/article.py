@@ -11,5 +11,6 @@ class Article(Base):
     slug = Column(String(255), unique=True, index=True, nullable=False)
     image_url = Column(String(500))
     reading_time = Column(String(50))
+    organization = Column(String(255))
     content = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

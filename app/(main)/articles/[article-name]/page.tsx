@@ -60,10 +60,10 @@ export default async function ArticlePage({
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               {article.title}
             </h1>
-
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {article.content}
-            </div>
+<div 
+  className="text-gray-700 leading-relaxed"
+  dangerouslySetInnerHTML={{ __html: article.content }}
+/>
           </div>
         </article>
       </div>

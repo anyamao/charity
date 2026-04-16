@@ -20,7 +20,7 @@ class ArticleResponse(BaseModel):
     reading_time: Optional[str] = None
     content: Optional[str] = None
     created_at: Optional[datetime] = None
-
+    organization: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 
