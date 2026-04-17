@@ -24,7 +24,7 @@ export default async function HomePage() {
       <div className="font-semibold flex flex-row justify-center">
         <div className=" flex items-center relative flex-col mr-[-100px] ml-[50px]">
           <p className="text-[20px]">
-            <span className="bg-red-200">Растим добро </span> - некомерческая
+            <span className="bg-red-200">Расти добро </span> - некомерческая
             организация, направленная на обьединение людей, чтобы делать добрые
             дела вместе!
           </p>
@@ -121,8 +121,7 @@ export default async function HomePage() {
                     <span className="inline-block px-3 py-1 bg-pink-100 text-pink-900 text-xs font-medium rounded-full">
                       {article.reading_time}
                     </span>
-                    <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                        </span>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"></span>
                   </div>
                   <h2 className="text-xl font-bold mb-[10px] mx-[10px] text-gray-900 mt-3 group-hover:text-pink-900 transition-colors">
                     {article.title}

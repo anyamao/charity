@@ -60,10 +60,23 @@ export default async function ArticlePage({
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               {article.title}
             </h1>
-<div 
-  className="text-gray-700 leading-relaxed"
-  dangerouslySetInnerHTML={{ __html: article.content }}
-/>
+            <div className="">
+              <p className="font-semibold text-[20px]">
+                День Космонавтики в Доме семьи
+              </p>
+              <p className="margin-top: 10px; line-height: 1.6;">
+                12 апреля в Доме семьи состоялся праздник, приуроченный ко Дню
+                космонавтики. Мероприятие было организовано для детей из
+                малообеспеченных семей и детей с ОВЗ. Для юных гостей была
+                подготовлена яркая программа: подвижные игры, флешмоб и
+                дискотека. Кульминацией праздника стало чаепитие с блинами. Все
+                дети ушли домой с надеждой на будущую встречу.
+              </p>
+            </div>
+            <div
+              className="flex flex-col  leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
           </div>
         </article>
       </div>

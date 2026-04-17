@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from ..database import get_db
 from ..models.article import Article as ArticleModel
 
-router = APIRouter()
+router = APIRouter(tags=["articles"])
 
 
 class ArticleResponse(BaseModel):
