@@ -22,13 +22,21 @@ def verify_password(plain_password, hashed_password):
 
 
 # В security.py, внутри get_password_hash:
+
+
 def get_password_hash(password: str) -> str:
-    password_bytes = password.encode("utf-8")
-    print(f"🔐 Hashing password: len={len(password_bytes)} bytes")  # <-- Для отладки
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-        print(f"✂️  Truncated to 72 bytes")
-    return pwd_context.hash(password_bytes)
+    """
+    Hash a password using bcrypt.
+    Automatically truncates to 72 bytes to avoid bcrypt limits.
+    """
+    # 🔧 Truncate to 72 bytes MAX (bcrypt limit)
+    pwd_bytes = password.encode('utf-8')
+    if len(pwd_bytes) > 72:
+        pwd_bytes = pwd_bytes[:72]
+        password = pwd_bytes.decode('utf-8', errors='ignore')
+    
+    return pwd_context.hash(password)
+
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

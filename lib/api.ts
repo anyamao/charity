@@ -1,51 +1,37 @@
+// lib/api.ts
+
+// ✅ Определяем базовый URL в зависимости от окружения
 const getApiUrl = () => {
-  // Если код выполняется на сервере (в контейнере)
   if (typeof window === "undefined") {
-    // Внутри Docker используем имя сервиса
+    // Сервер (в Docker): используем имя сервиса
     return process.env.API_INTERNAL_URL || "http://backend:8000";
   }
-  // Если в браузере — используем публичный IP
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // Клиент (браузер): относительный путь, Nginx проксирует /api → backend
+  return process.env.NEXT_PUBLIC_API_URL || "/api";
 };
 
-const API_URL = "http://localhost:8000";
+// Types (оставь как есть)
+export interface SignupData { /* ... */ }
+export interface UserResponse { /* ... */ }
+export interface TokenResponse { /* ... */ }
 
-// Types
-export interface SignupData {
-  email: string;
-  password: string;
-  name: string;
-  lastname: string;
-  city: string;
-  date_of_birth: string;
-  contact_type: "phone" | "vk" | "telegram";
-  contact_value: string;
-}
-
-export interface UserResponse {
-  id: number;
-  email: string;
-  name: string | null;
-  lastname: string | null;
-  city: string | null;
-  contact_type: string | null;
-  created_at: string;
-}
-
-export interface TokenResponse {
-  access_token: string;
-  token_type: string;
-}
-
-// Generic API fetch function
+// ✅ Generic API fetch function — теперь использует getApiUrl()!
 export async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<T> {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const API_BASE = getApiUrl(); // ← ✅ ИСПОЛЬЗУЕМ ФУНКЦИЮ!
+  
+  // Убираем дубли /api, если endpoint уже содержит его
+  const path = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
+  const url = `${API_BASE}${path}`;
+  
+  // Отладка (удали после проверки)
+  console.log(`[API] ${typeof window === 'undefined' ? 'SERVER' : 'CLIENT'} → ${url}`);
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  
+  const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -56,64 +42,52 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ detail: "Request failed" }));
+    const error = await response.json().catch(() => ({ detail: "Request failed" }));
     throw new Error(error.detail || `HTTP ${response.status}`);
   }
 
   return response.json();
 }
 
-// Generic API object for any endpoint
-export const api = {
-  fetch: apiFetch,
-};
+export const api = { fetch: apiFetch };
 
-// Auth API methods
+// ✅ Auth API methods
 export const authApi = {
   signup: async (data: SignupData): Promise<UserResponse> => {
-    return apiFetch<UserResponse>("/api/v1/auth/signup", {
+    return apiFetch("/api/v1/auth/signup", {  // ← теперь пойдёт через getApiUrl()
       method: "POST",
       body: JSON.stringify(data),
     });
   },
-
+  
   login: async (email: string, password: string): Promise<TokenResponse> => {
+    const API_BASE = getApiUrl(); // ← ✅ И здесь!
     const formData = new URLSearchParams();
     formData.append("username", email);
     formData.append("password", password);
-
-    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+    
+    const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData.toString(),
     });
 
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ detail: "Login failed" }));
+      const error = await response.json().catch(() => ({ detail: "Login failed" }));
       throw new Error(error.detail || `HTTP ${response.status}`);
     }
-
     return response.json();
   },
-
+  
   getMe: async (): Promise<UserResponse> => {
-    return apiFetch<UserResponse>("/api/v1/auth/me");
+    return apiFetch("/api/v1/auth/me");
   },
 };
 
 // Token helpers
 export const setAuthToken = (token: string) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("token", token);
-  }
+  if (typeof window !== "undefined") localStorage.setItem("token", token);
 };
-
 export const clearAuthToken = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token");
-  }
+  if (typeof window !== "undefined") localStorage.removeItem("token");
 };
