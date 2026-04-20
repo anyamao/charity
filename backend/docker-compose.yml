@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: charity
+      POSTGRES_PASSWORD: charity_secure_pass_123
+      POSTGRES_DB: charity_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  web:
+    build: .
+    ports:
+      - "8002:8000"
+    environment:
+      DATABASE_URL: postgresql://charity:charity_secure_pass_123@db:5432/charity_db
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -16,13 +16,13 @@ services:  # ✅ Ключ services: обязателен!
 
   backend:
     build: ./backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8002 --workers 2
     environment:
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/charity_db
       SECRET_KEY: ${SECRET_KEY}
-      ALLOWED_ORIGINS: http://${VPS_IP}:3001,http://${VPS_IP}:8001
+      ALLOWED_ORIGINS: http://${VPS_IP}:3002,http://${VPS_IP}:8002
     ports:
-      - "8001:8000"
+      - "8002:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -35,10 +35,10 @@ services:  # ✅ Ключ services: обязателен!
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - API_INTERNAL_URL=http://backend:8000
+      - API_INTERNAL_URL=http://backend:8002
       - NODE_ENV=production
     ports:
-      - "3001:3000"
+      - "3002:3000"
     depends_on:
       - backend
     restart: unless-stopped

@@ -1,37 +1,37 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .config import settings
-from .routers import auth, users, articles  # We'll create these
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from typing import List, Optional
+import sqlite3
+import os
+from app.routers import auth
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    docs_url=f"{settings.API_V1_STR}/docs",
-)
+app = FastAPI(title="Charity API")
 
-# CORS Middleware
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
-app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
-app.include_router(
-    articles.router, prefix=f"{settings.API_V1_STR}/articles", tags=["articles"]
-)
+# Include auth router
+app.…    row = conn.execute("SELECT * FROM articles WHERE slug = ?", (slug,)).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return dict(row)
 
+@app.get("/api/v1/articles")
+async def list_articles():
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM articles").fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 @app.get("/")
 def root():
-    return {"message": "API is running", "docs": f"{settings.API_V1_STR}/docs"}
-
-
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+    return {"message": "API is running", "docs": "/api/v1/docs"}

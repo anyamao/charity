@@ -1,50 +1,68 @@
-# === backend/app/routers/auth.py ===
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from typing import Optional
+import sqlite3
+import os
+from app.utils.auth import hash_password, verify_password, create_access_token, decode_token
 
-from ..database import get_db
-from ..models.user import User
-from ..core.security import get_password_hash, verify_password, create_access_token
+router = APIRouter(prefix="/auth", tags=["auth"])
+DB_PATH = "/app/charity.db"
 
-# ✅ Создаём роутер
-router = APIRouter(tags=["auth"])
-
-
-# === Схемы данных ===
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    full_name: str | None = None
-
-
-class UserLogin(BaseModel):
-    email: EmailStr
+class SignupRequest(BaseModel):
+    email: str
     password: str
 
+class UserResponse(BaseModel):
+    id: int
+    email: str
 
-# === Эндпоинты ===
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(status_code=400, detail="Email уже зарегистрирован")
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
-    new_user = User(
-        email=user.email,
-        hashed_password=get_password_hash(user.password),
-        full_name=user.full_name,
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return {"message": "Пользователь создан", "email": new_user.email}
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
+@router.post("/signup", response_model=UserResponse)
+async def signup(data: SignupRequest):
+    conn = get_db()
+    # Check if user exists
+    existing = conn.execute("SELECT id FROM users WHERE email = ?", (data.email,)).fetchone()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Insert new user
+    hashed = hash_password(data.password)
+    cursor = conn.execute("INSERT INTO users (email, hashed_password) VALUES (?, ?)", (data.email, hashed))
+    conn.commit()
+    conn.close()
+    return {"id": cursor.lastrowid, "email": data.email}
 
-@router.post("/login")
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Неверный email или пароль")
-
-    token = create_access_token(data={"sub": db_user.email})
+@router.post("/login", response_model=TokenResponse)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    conn = get_db()
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (form_data.username,)).fetchone()
+    conn.close()
+    
+    if not user or not verify_password(form_data.password, user["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    token = create_access_token({"sub": user["email"], "user_id": user["id"]})
     return {"access_token": token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(token: str = Depends(OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login"))):
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    conn = get_db()
+    user = conn.execute("SELECT id, email FROM users WHERE email = ?", (payload["sub"],)).fetchone()
+    conn.close()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return dict(user)

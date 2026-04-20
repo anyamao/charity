@@ -1,0 +1,92 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
+import sqlite3
+import os
+
+app = FastAPI(title="Charity API")
+
+# CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Tighten this in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Pydantic model matching your frontend Article interface
+class Article(BaseModel):
+    id: int
+    title: str
+    slug: str
+    image_url: Optional[str] = None
+    reading_time: Optional[str] = "5 мин"
+    content: Optional[str] = ""
+
+# SQLite setup
+DB_PATH = "/app/charity.db"
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            slug TEXT UNIQUE NOT NULL,
+            image_url TEXT,
+            reading_time TEXT DEFAULT '5 мин',
+            content TEXT
+        )
+    ''')
+    # Seed one article if none exist
+    cursor = conn.execute("SELECT COUNT(*) FROM articles")
+    if cursor.fetchone()[0] == 0:
+        conn.execute('''
+            INSERT INTO articles (title, slug, image_url, reading_time, content)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            "Как начать заниматься благотворительностью",
+            "kak-nachat-zanimatsya-blagotvoritelnostyu",
+            "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800",
+            "5 мин",
+            "<p>Благотворительность — это не только про деньги, но и про время, навыки и внимание.</p><h3>1. Определите свои ценности</h3><p>Подумайте, какие причины вам близки: помощь детям, животным, экология или поддержка пожилых людей.</p><h3>2. Начните с малого</h3><p>Не обязательно делать крупные пожертвования. Даже небольшая регулярная помощь имеет значение.</p>"
+        ))
+        conn.commit()
+    conn.close()
+
+# Initialize DB on startup
+@app.on_event("startup")
+def startup():
+    init_db()
+
+# ✅ EXACT route your frontend expects
+@app.get("/api/v1/articles/{slug}", response_model=Article)
+async def get_article(slug: str):
+    conn = get_db()
+    cursor = conn.execute("SELECT * FROM articles WHERE slug = ?", (slug,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    return dict(row)
+
+@app.get("/api/v1/articles", response_model=List[Article])
+async def list_articles():
+    conn = get_db()
+    cursor = conn.execute("SELECT * FROM articles")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+@app.get("/")
+def root():
+    return {"message": "API is running", "docs": "/api/v1/docs"}

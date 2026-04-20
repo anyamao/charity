@@ -4,7 +4,7 @@
 const getApiUrl = () => {
   if (typeof window === "undefined") {
     // Сервер (в Docker): используем имя сервиса
-    return process.env.API_INTERNAL_URL || "http://backend:8000";
+    return process.env.API_INTERNAL_URL || "http://127.0.0.1:8002";
   }
   // Клиент (браузер): относительный путь, Nginx проксирует /api → backend
   return process.env.NEXT_PUBLIC_API_URL || "/api";
